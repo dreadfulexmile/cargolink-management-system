@@ -13,6 +13,7 @@ class LorryHire extends Model
     protected $fillable = [
         'lorry_id', 'hire_date', 'hirer_name', 'amount',
         'held_hours', 'held_hourly_rate', 'held_fee', 'notes',
+        'from_location', 'to_location', 'distance_km', 'started_at', 'ended_at',
     ];
 
     protected function casts(): array
@@ -23,6 +24,9 @@ class LorryHire extends Model
             'held_hours' => 'decimal:2',
             'held_hourly_rate' => 'decimal:2',
             'held_fee' => 'decimal:2',
+            'distance_km' => 'decimal:2',
+            'started_at' => 'datetime',
+            'ended_at' => 'datetime',
         ];
     }
 

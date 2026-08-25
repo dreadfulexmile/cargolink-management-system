@@ -100,6 +100,21 @@
             <path d="M15.5 14.2c2.3 0.4 4 2.2 4.5 5.8" stroke-linecap="round" stroke-linejoin="round" />
             @break
 
+        @case('settings')
+            <circle cx="12" cy="12" r="6.5" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="12" cy="12" r="2.5" stroke-linecap="round" stroke-linejoin="round" />
+            @for ($i = 0; $i < 8; $i++)
+                <rect x="10.8" y="2" width="2.4" height="2.6" rx="0.6" transform="rotate({{ $i * 45 }} 12 12)" stroke-linecap="round" stroke-linejoin="round" />
+            @endfor
+            @break
+
+        @case('hash')
+            <line x1="9" y1="4" x2="7" y2="20" stroke-linecap="round" stroke-linejoin="round" />
+            <line x1="17" y1="4" x2="15" y2="20" stroke-linecap="round" stroke-linejoin="round" />
+            <line x1="4.5" y1="9.5" x2="20" y2="9.5" stroke-linecap="round" stroke-linejoin="round" />
+            <line x1="4" y1="14.5" x2="19.5" y2="14.5" stroke-linecap="round" stroke-linejoin="round" />
+            @break
+
         @case('key')
             <circle cx="8" cy="8" r="4" stroke-linecap="round" stroke-linejoin="round" />
             <line x1="8" y1="12" x2="8" y2="20" stroke-linecap="round" stroke-linejoin="round" />

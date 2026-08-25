@@ -5,13 +5,10 @@ namespace App\Livewire\Users;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.app')]
-#[Title('Users')]
+// Rendered as a tab inside Settings\Index — see resources/views/livewire/settings/index.blade.php.
 class Index extends Component
 {
     use WithPagination;
@@ -59,7 +56,7 @@ class Index extends Component
         if ($this->editingId) {
             $this->validate([
                 'name' => 'required|string|max:255',
-                'role' => 'required|in:gm,staff',
+                'role' => 'required|in:gm,co-gm,staff',
             ]);
 
             $user = User::findOrFail($this->editingId);
@@ -72,7 +69,7 @@ class Index extends Component
         $this->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
-            'role' => 'required|in:gm,staff',
+            'role' => 'required|in:gm,co-gm,staff',
         ]);
 
         // No self-registration and no mailer configured for this app (see

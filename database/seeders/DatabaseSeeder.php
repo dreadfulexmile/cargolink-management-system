@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
         // the repo or in this process beyond this run.
         $accounts = [
             ['email' => 'gm@cargolink.lk', 'name' => 'General Manager', 'role' => 'gm'],
-            ['email' => 'co-gm@cargolink.lk', 'name' => 'Co-General Manager', 'role' => 'gm'],
+            ['email' => 'co-gm@cargolink.lk', 'name' => 'Co-General Manager', 'role' => 'co-gm'],
             ['email' => 'staff@cargolink.lk', 'name' => 'Staff User', 'role' => 'staff'],
         ];
 
@@ -35,7 +35,10 @@ class DatabaseSeeder extends Seeder
                 ['email' => $account['email']],
                 ['name' => $account['name'], 'password' => bcrypt($password)]
             );
-            $user->assignRole($account['role']);
+            // syncRoles (not assignRole) so re-running this seeder against a
+            // DB seeded before the 'co-gm' role existed replaces the old
+            // 'gm' role instead of leaving the account with both.
+            $user->syncRoles([$account['role']]);
 
             if ($user->wasRecentlyCreated && app()->environment('production')) {
                 $this->command?->warn("Seeded {$account['email']} with password: {$password}");

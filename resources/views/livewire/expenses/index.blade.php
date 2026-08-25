@@ -2,7 +2,7 @@
     <div class="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-slate-200 leading-tight">{{ __('Expenses') }}</h2>
 
-        <div class="flex items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
             <x-date-range-filter :date-from="$dateFrom" :error="$dateRangeError" />
             <div class="text-sm text-gray-600 dark:text-slate-400">
                 Total: <x-money :amount="$rangeTotal" class="font-semibold text-gray-900 dark:text-slate-100" />
@@ -57,6 +57,7 @@
         @endif
 
         <div class="bg-white dark:bg-slate-800 shadow-sm rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-slate-900/50 text-left text-gray-500 dark:text-slate-400">
                     <tr>
@@ -88,6 +89,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
 
         {{ $expenses->links() }}

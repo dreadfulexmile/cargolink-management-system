@@ -2,7 +2,11 @@
     <div class="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-slate-200 leading-tight">{{ __('Director Current Account') }}</h2>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white dark:bg-slate-800 shadow-sm rounded-lg p-4">
+                <div class="text-xs text-gray-500 dark:text-slate-400">Account Balance</div>
+                <div class="text-lg font-semibold text-gray-900 dark:text-slate-100"><x-money :amount="bcsub($totalCredit, $totalDebit, 2)" /></div>
+            </div>
             <div class="bg-white dark:bg-slate-800 shadow-sm rounded-lg p-4">
                 <div class="text-xs text-gray-500 dark:text-slate-400">Total Drawings (Debit)</div>
                 <div class="text-lg font-semibold text-gray-900 dark:text-slate-100"><x-money :amount="$totalDebit" /></div>
@@ -12,9 +16,40 @@
                 <div class="text-lg font-semibold text-gray-900 dark:text-slate-100"><x-money :amount="$totalCredit" /></div>
             </div>
             <div class="bg-white dark:bg-slate-800 shadow-sm rounded-lg p-4">
-                <div class="text-xs text-gray-500 dark:text-slate-400">Profit After Leases (MTD)</div>
-                <div class="text-lg font-semibold text-gray-900 dark:text-slate-100"><x-money :amount="$profitAfterLeases" /></div>
+                <div class="text-xs text-gray-500 dark:text-slate-400">Final Company Profit (MTD)</div>
+                <div class="text-lg font-semibold text-gray-900 dark:text-slate-100"><x-money :amount="$finalCompanyProfitMtd" /></div>
             </div>
+        </div>
+
+        {{-- Post a completed month's final company profit into the ledger below, as a real
+             transaction — this is what actually moves the account balance, not just the live
+             MTD figure above (which is still moving and isn't final until the month closes). --}}
+        <div class="bg-white dark:bg-slate-800 shadow-sm rounded-lg p-4 space-y-3">
+            <h3 class="font-semibold text-gray-800 dark:text-slate-200 text-sm">Post Final Earnings to Ledger</h3>
+            <div class="flex flex-wrap items-end gap-3">
+                <div>
+                    <x-input-label value="Month" />
+                    <input type="month" wire:model.live="postMonth" class="mt-1 block rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 text-sm">
+                </div>
+                <div class="text-sm text-gray-600 dark:text-slate-300 pb-2">
+                    @if ($this->alreadyPosted)
+                        <span class="text-amber-600 dark:text-amber-400">Already posted for this month.</span>
+                    @elseif ($this->postPreview !== null)
+                        Will post <span class="font-semibold"><x-money :amount="$this->postPreview" /></span>
+                        as a {{ bccomp($this->postPreview, '0', 2) >= 0 ? 'credit' : 'debit' }}.
+                    @endif
+                </div>
+                <button wire:click="postFinalEarnings" @disabled($this->alreadyPosted)
+                    class="px-4 py-2 bg-brand-600 dark:bg-brand-500 text-white rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                    Post to Ledger
+                </button>
+            </div>
+            @if ($postError)
+                <p class="text-sm text-red-600 dark:text-red-400">{{ $postError }}</p>
+            @endif
+            @if ($postedMonths->isNotEmpty())
+                <p class="text-xs text-gray-400 dark:text-slate-500">Already posted: {{ $postedMonths->implode(', ') }}</p>
+            @endif
         </div>
 
         <div class="flex justify-end">
@@ -53,6 +88,7 @@
         @endif
 
         <div class="bg-white dark:bg-slate-800 shadow-sm rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-slate-900/50 text-left text-gray-500 dark:text-slate-400">
                     <tr>
@@ -84,6 +120,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
 
         {{ $transactions->links() }}

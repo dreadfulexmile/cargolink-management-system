@@ -42,24 +42,24 @@
             </div>
         </div>
 
-        @role('gm')
-            <div>
-                <div class="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Financial</div>
-                <div class="space-y-1">
-                    <x-sidebar-link :href="route('director-account.index')" :active="request()->routeIs('director-account.*')" icon="director" wire:navigate>
-                        {{ __('Director A/C') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('creditors.index')" :active="request()->routeIs('creditors.*')" icon="creditors" wire:navigate>
-                        {{ __('Creditors') }}
-                    </x-sidebar-link>
-                </div>
+        <div>
+            <div class="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Financial</div>
+            <div class="space-y-1">
+                <x-sidebar-link :href="route('director-account.index')" :active="request()->routeIs('director-account.*')" icon="director" wire:navigate>
+                    {{ __('Director A/C') }}
+                </x-sidebar-link>
+                <x-sidebar-link :href="route('creditors.index')" :active="request()->routeIs('creditors.*')" icon="creditors" wire:navigate>
+                    {{ __('Creditors') }}
+                </x-sidebar-link>
             </div>
+        </div>
 
+        @role('gm|co-gm')
             <div>
                 <div class="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Admin</div>
                 <div class="space-y-1">
-                    <x-sidebar-link :href="route('users.index')" :active="request()->routeIs('users.*')" icon="users" wire:navigate>
-                        {{ __('Users') }}
+                    <x-sidebar-link :href="route('settings.index')" :active="request()->routeIs('settings.*')" icon="settings" wire:navigate>
+                        {{ __('Settings') }}
                     </x-sidebar-link>
                 </div>
             </div>

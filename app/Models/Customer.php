@@ -35,8 +35,19 @@ class Customer extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function receipts(): HasMany
+    {
+        return $this->hasMany(Receipt::class);
+    }
+
+    /** Total still owed across every one of this customer's invoices, computed live. */
+    public function outstandingBalance(): string
+    {
+        return (string) $this->invoices()->sum('balance_due');
+    }
+
     protected function cascadeDeletes(): array
     {
-        return ['jobs', 'invoices'];
+        return ['jobs', 'invoices', 'receipts'];
     }
 }

@@ -12,6 +12,7 @@
         </div>
 
         <div class="bg-white dark:bg-slate-800 shadow-sm rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-slate-900/50 text-left text-gray-500 dark:text-slate-400">
                     <tr>
@@ -39,7 +40,17 @@
                                     {{ $customer->jobs_count }}
                                 </a>
                             </td>
-                            <td class="px-4 py-3"><x-money :amount="$customer->outstanding_balance" /></td>
+                            <td class="px-4 py-3">
+                                @if ($customer->outstanding_balance > 0)
+                                    <a href="{{ route('customers.receive-payment', $customer) }}" wire:navigate
+                                        title="Receive a payment from {{ $customer->name }}"
+                                        class="text-gray-900 dark:text-slate-100 hover:text-brand-600 dark:hover:text-brand-400 decoration-dotted underline-offset-4 hover:underline">
+                                        <x-money :amount="$customer->outstanding_balance" />
+                                    </a>
+                                @else
+                                    <x-money :amount="$customer->outstanding_balance" />
+                                @endif
+                            </td>
                             <td class="px-4 py-3">{{ $customer->credit_days }}</td>
                             <td class="px-4 py-3">
                                 <x-active-toggle :active="$customer->is_active" :params="[$customer->id]" :label="$customer->name" entity="Customer" />
@@ -48,6 +59,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
 
         {{ $customers->links() }}
@@ -76,7 +88,17 @@
                     </div>
                     <div>
                         <div class="text-xs text-gray-500 dark:text-slate-400">Outstanding</div>
-                        <div class="font-medium text-gray-900 dark:text-slate-100"><x-money :amount="$viewingCustomer->outstanding_balance ?? 0" /></div>
+                        <div class="font-medium">
+                            @if (($viewingCustomer->outstanding_balance ?? 0) > 0)
+                                <a href="{{ route('customers.receive-payment', $viewingCustomer) }}" wire:navigate
+                                    title="Receive a payment from {{ $viewingCustomer->name }}"
+                                    class="text-gray-900 dark:text-slate-100 hover:text-brand-600 dark:hover:text-brand-400 decoration-dotted underline-offset-4 hover:underline">
+                                    <x-money :amount="$viewingCustomer->outstanding_balance ?? 0" />
+                                </a>
+                            @else
+                                <span class="text-gray-900 dark:text-slate-100"><x-money :amount="$viewingCustomer->outstanding_balance ?? 0" /></span>
+                            @endif
+                        </div>
                     </div>
                     <div>
                         <div class="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Active</div>

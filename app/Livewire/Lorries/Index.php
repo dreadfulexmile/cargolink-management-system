@@ -9,12 +9,13 @@ use App\Models\LorryHire;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
 #[Title('Lorries')]
 class Index extends Component
 {
-    use HasDateRangeFilter;
+    use HasDateRangeFilter, WithPagination;
 
     public bool $showLorryForm = false;
 
@@ -28,6 +29,15 @@ class Index extends Component
 
     // Which sub-panel is showing for the active lorry: 'income' or 'expenses'.
     public string $lorryTab = 'income';
+
+    // Hire history — deliberately independent of the date-range filter
+    // above (which only scopes the period stat cards): this is the full,
+    // searchable, all-time log of hires for the active lorry.
+    public string $hireHistorySearch = '';
+
+    // Expense history — same idea, filterable by category since that's a
+    // fixed set rather than free text.
+    public string $expenseHistoryCategory = '';
 
     // Hire income form
     public ?int $hiringLorryId = null;
@@ -49,6 +59,17 @@ class Index extends Component
     public string $held_hourly_rate = '';
 
     public string $hire_notes = '';
+
+    // Trip details — all optional, only used to fill out the client-facing receipt.
+    public string $hire_from_location = '';
+
+    public string $hire_to_location = '';
+
+    public string $hire_distance_km = '';
+
+    public string $hire_started_at = '';
+
+    public string $hire_ended_at = '';
 
     // Optional running costs entered alongside a new hire — create their own
     // LorryExpense rows on save rather than being stored on the hire itself.
@@ -91,6 +112,10 @@ class Index extends Component
     {
         $this->activeLorryId = $id;
         $this->lorryTab = 'income';
+        $this->hireHistorySearch = '';
+        $this->expenseHistoryCategory = '';
+        $this->resetPage('hirePage');
+        $this->resetPage('expensePage');
         $this->cancelHire();
         $this->cancelExpense();
     }
@@ -106,6 +131,16 @@ class Index extends Component
         if ($tab !== 'expenses') {
             $this->cancelExpense();
         }
+    }
+
+    public function updatedHireHistorySearch(): void
+    {
+        $this->resetPage('hirePage');
+    }
+
+    public function updatedExpenseHistoryCategory(): void
+    {
+        $this->resetPage('expensePage');
     }
 
     public function createLorry(): void
@@ -180,7 +215,11 @@ class Index extends Component
         $this->hiringLorryId = $lorryId;
         $this->editingHireId = null;
         $this->hire_date = now('Asia/Colombo')->format('Y-m-d');
-        $this->reset(['hirer_name', 'hire_amount', 'held_hours', 'held_hourly_rate', 'hire_notes', 'hire_diesel', 'hire_driver_fee', 'hire_yard_ot', 'hire_other']);
+        $this->reset([
+            'hirer_name', 'hire_amount', 'held_hours', 'held_hourly_rate', 'hire_notes',
+            'hire_diesel', 'hire_driver_fee', 'hire_yard_ot', 'hire_other',
+            'hire_from_location', 'hire_to_location', 'hire_distance_km', 'hire_started_at', 'hire_ended_at',
+        ]);
     }
 
     public function editHire(int $hireId): void
@@ -195,6 +234,11 @@ class Index extends Component
         $this->held_hours = $hire->held_hours !== null ? (string) $hire->held_hours : '';
         $this->held_hourly_rate = $hire->held_hourly_rate !== null ? (string) $hire->held_hourly_rate : '';
         $this->hire_notes = (string) $hire->notes;
+        $this->hire_from_location = (string) $hire->from_location;
+        $this->hire_to_location = (string) $hire->to_location;
+        $this->hire_distance_km = $hire->distance_km !== null ? (string) $hire->distance_km : '';
+        $this->hire_started_at = $hire->started_at?->format('Y-m-d\TH:i') ?? '';
+        $this->hire_ended_at = $hire->ended_at?->format('Y-m-d\TH:i') ?? '';
         // Editing a hire never touches expenses — they're independent records.
         $this->reset(['hire_diesel', 'hire_driver_fee', 'hire_yard_ot', 'hire_other']);
     }
@@ -233,6 +277,11 @@ class Index extends Component
             'hire_driver_fee' => 'nullable|numeric|min:0',
             'hire_yard_ot' => 'nullable|numeric|min:0',
             'hire_other' => 'nullable|numeric|min:0',
+            'hire_from_location' => 'nullable|string|max:255',
+            'hire_to_location' => 'nullable|string|max:255',
+            'hire_distance_km' => 'nullable|numeric|min:0',
+            'hire_started_at' => 'nullable|date',
+            'hire_ended_at' => 'nullable|date|after_or_equal:hire_started_at',
         ]);
 
         $isNewHire = ! $this->editingHireId;
@@ -250,6 +299,11 @@ class Index extends Component
             'held_fee' => $heldFee,
             'hirer_name' => $data['hirer_name'] !== '' ? $data['hirer_name'] : null,
             'notes' => $data['hire_notes'] !== '' ? $data['hire_notes'] : null,
+            'from_location' => $data['hire_from_location'] !== '' ? $data['hire_from_location'] : null,
+            'to_location' => $data['hire_to_location'] !== '' ? $data['hire_to_location'] : null,
+            'distance_km' => $data['hire_distance_km'] !== '' ? $data['hire_distance_km'] : null,
+            'started_at' => $data['hire_started_at'] !== '' ? $data['hire_started_at'] : null,
+            'ended_at' => $data['hire_ended_at'] !== '' ? $data['hire_ended_at'] : null,
         ];
 
         if ($this->editingHireId) {
@@ -274,6 +328,7 @@ class Index extends Component
             }
         }
 
+        $this->resetPage('hirePage');
         $this->cancelHire();
     }
 
@@ -281,12 +336,17 @@ class Index extends Component
     {
         $this->hiringLorryId = null;
         $this->editingHireId = null;
-        $this->reset(['hirer_name', 'hire_amount', 'held_hours', 'held_hourly_rate', 'hire_notes', 'hire_diesel', 'hire_driver_fee', 'hire_yard_ot', 'hire_other']);
+        $this->reset([
+            'hirer_name', 'hire_amount', 'held_hours', 'held_hourly_rate', 'hire_notes',
+            'hire_diesel', 'hire_driver_fee', 'hire_yard_ot', 'hire_other',
+            'hire_from_location', 'hire_to_location', 'hire_distance_km', 'hire_started_at', 'hire_ended_at',
+        ]);
     }
 
     public function deleteHire(int $hireId): void
     {
         LorryHire::findOrFail($hireId)->delete();
+        $this->resetPage('hirePage');
     }
 
     /**
@@ -358,6 +418,7 @@ class Index extends Component
             LorryExpense::create($payload);
         }
 
+        $this->resetPage('expensePage');
         $this->cancelExpense();
     }
 
@@ -372,6 +433,7 @@ class Index extends Component
     public function deleteExpense(int $expenseId): void
     {
         LorryExpense::findOrFail($expenseId)->delete();
+        $this->resetPage('expensePage');
     }
 
     public function render()
@@ -386,15 +448,33 @@ class Index extends Component
             ->withSum(['expenses as total_maintenance' => fn ($q) => $this->applyDateRangeFilter($q->where('category', 'maintenance'), 'expense_date')], 'amount')
             ->withSum(['expenses as total_driver_fee' => fn ($q) => $this->applyDateRangeFilter($q->where('category', 'driver_fee'), 'expense_date')], 'amount')
             ->withSum(['expenses as total_yard_ot' => fn ($q) => $this->applyDateRangeFilter($q->where('category', 'yard_ot'), 'expense_date')], 'amount')
-            ->with([
-                'hires' => fn ($q) => $this->applyDateRangeFilter($q, 'hire_date')->latest('hire_date')->limit(10),
-                'expenses' => fn ($q) => $this->applyDateRangeFilter($q, 'expense_date')->latest('expense_date')->limit(10),
-            ])
             ->orderBy('id')
             ->get();
 
+        // Hire and expense history are deliberately their own queries,
+        // independent of the date-range filter above — searchable/filterable
+        // and paginated across every record ever entered for the active
+        // lorry, not just the selected period's top 10.
+        $hireHistory = $this->activeLorryId
+            ? LorryHire::where('lorry_id', $this->activeLorryId)
+                ->when($this->hireHistorySearch, fn ($q) => $q->where('hirer_name', 'like', "%{$this->hireHistorySearch}%"))
+                ->orderByDesc('hire_date')
+                ->orderByDesc('id')
+                ->paginate(15, ['*'], 'hirePage')
+            : null;
+
+        $expenseHistory = $this->activeLorryId
+            ? LorryExpense::where('lorry_id', $this->activeLorryId)
+                ->when($this->expenseHistoryCategory, fn ($q) => $q->where('category', $this->expenseHistoryCategory))
+                ->orderByDesc('expense_date')
+                ->orderByDesc('id')
+                ->paginate(15, ['*'], 'expensePage')
+            : null;
+
         return view('livewire.lorries.index', [
             'lorries' => $lorries,
+            'hireHistory' => $hireHistory,
+            'expenseHistory' => $expenseHistory,
         ]);
     }
 }

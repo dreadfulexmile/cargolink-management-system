@@ -1,6 +1,6 @@
 <div>
     <div class="py-6 sm:py-8 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-slate-200 leading-tight">{{ __('Dashboard') }}</h2>
             <x-date-range-filter :date-from="$dateFrom" :error="$dateRangeError" />
         </div>
@@ -8,8 +8,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             <!-- Left: headline profit, cost breakdown, recent jobs -->
             <div class="lg:col-span-2 space-y-6">
-                @role('gm')
-                    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 dark:from-brand-600 dark:via-brand-700 dark:to-slate-900 text-white p-6 sm:p-8">
+                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 dark:from-brand-600 dark:via-brand-700 dark:to-slate-900 text-white p-6 sm:p-8">
                         <div class="absolute -right-10 -top-16 w-56 h-56 rounded-full bg-white/10"></div>
                         <div class="absolute -right-24 top-10 w-48 h-48 rounded-full bg-white/10"></div>
                         <div class="relative flex flex-wrap items-end justify-between gap-6">
@@ -56,7 +55,6 @@
                             <x-money :amount="$summary['operating_profit']" :cents="false" :symbol="false" />
                         </x-stat-card>
                     </div>
-                @endrole
 
                 <div class="grid grid-cols-2 gap-4">
                     <x-stat-card label="Jobs (Selected Period)" icon="jobs" color="indigo">
@@ -102,8 +100,7 @@
 
             <!-- Right: margin chart, at-a-glance balances -->
             <div class="space-y-6">
-                @role('gm')
-                    <div class="bg-white dark:bg-slate-800 shadow-sm rounded-3xl p-6">
+                <div class="bg-white dark:bg-slate-800 shadow-sm rounded-3xl p-6">
                         <h3 class="font-semibold text-gray-800 dark:text-slate-200 mb-4">Revenue / Cost / Gross Profit</h3>
                         <canvas
                             x-data="{
@@ -125,7 +122,6 @@
                             height="180"
                         ></canvas>
                     </div>
-                @endrole
 
                 <div class="space-y-4">
                     <x-stat-card label="Receivables Outstanding (Rs)" icon="clock" color="sky">
@@ -135,24 +131,22 @@
                         </x-slot:footer>
                     </x-stat-card>
 
-                    @role('gm')
-                        <x-stat-card label="Total Debt (Rs)" icon="creditors" color="rose">
-                            <x-money :amount="$totalDebt" :cents="false" :symbol="false" />
-                        </x-stat-card>
-                        <x-stat-card
-                            label="Director Drawings vs Profit (Rs)"
-                            icon="warning"
-                            color="amber"
-                            :highlight="bccomp($excessDrawings, '0', 2) > 0"
-                        >
-                            <x-money :amount="$drawings" :cents="false" :symbol="false" />
-                            @if (bccomp($excessDrawings, '0', 2) > 0)
-                                <x-slot:footer>
-                                    <span class="text-amber-700 dark:text-amber-400">Excess over profit: <x-money :amount="$excessDrawings" :cents="false" :symbol="false" /></span>
-                                </x-slot:footer>
-                            @endif
-                        </x-stat-card>
-                    @endrole
+                    <x-stat-card label="Total Debt (Rs)" icon="creditors" color="rose">
+                        <x-money :amount="$totalDebt" :cents="false" :symbol="false" />
+                    </x-stat-card>
+                    <x-stat-card
+                        label="Director Drawings vs Profit (Rs)"
+                        icon="warning"
+                        color="amber"
+                        :highlight="bccomp($excessDrawings, '0', 2) > 0"
+                    >
+                        <x-money :amount="$drawings" :cents="false" :symbol="false" />
+                        @if (bccomp($excessDrawings, '0', 2) > 0)
+                            <x-slot:footer>
+                                <span class="text-amber-700 dark:text-amber-400">Excess over profit: <x-money :amount="$excessDrawings" :cents="false" :symbol="false" /></span>
+                            </x-slot:footer>
+                        @endif
+                    </x-stat-card>
                 </div>
             </div>
         </div>

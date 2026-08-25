@@ -1,7 +1,5 @@
 <div>
-    <div class="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-slate-200 leading-tight">{{ __('Users') }}</h2>
-
+    <div class="space-y-4">
         <div class="flex items-center justify-between gap-4">
             <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search users..."
                 class="w-full max-w-sm rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 shadow-sm">
@@ -12,6 +10,7 @@
         </div>
 
         <div class="bg-white dark:bg-slate-800 shadow-sm rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-slate-900/50 text-left text-gray-500 dark:text-slate-400">
                     <tr>
@@ -36,7 +35,7 @@
                             <td class="px-4 py-3 max-w-[220px] truncate" title="{{ $user->email }}">{{ $user->email }}</td>
                             <td class="px-4 py-3">
                                 <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full uppercase tracking-wide
-                                    {{ $user->hasRole('gm') ? 'bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400' : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300' }}">
+                                    {{ $user->hasRole('gm|co-gm') ? 'bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400' : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300' }}">
                                     {{ $user->getRoleNames()->first() ?? '—' }}
                                 </span>
                             </td>
@@ -45,6 +44,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
 
         {{ $users->links() }}
@@ -59,6 +59,7 @@
                     @if ($trashedUsers->isEmpty())
                         <p class="px-4 py-3 text-sm text-gray-400 dark:text-slate-500">No deactivated users.</p>
                     @else
+                        <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="bg-gray-50 dark:bg-slate-900/50 text-left text-gray-500 dark:text-slate-400">
                                 <tr>
@@ -85,6 +86,7 @@
                                 @endforeach
                             </tbody>
                         </table>
+                        </div>
                     @endif
                 </div>
             @endif
@@ -143,6 +145,7 @@
                         <select id="modal_user_role" wire:model="role" class="mt-1 block w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">
                             <option value="staff">Staff — operational access</option>
                             <option value="gm">GM — full access</option>
+                            <option value="co-gm">Co-GM — full access</option>
                         </select>
                         <x-input-error :messages="$errors->get('role')" class="mt-1" />
                     </div>

@@ -61,6 +61,7 @@
                 </div>
             </form>
 
+            <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="text-left text-gray-500 dark:text-slate-400">
                     <tr><th class="py-2">Description</th><th class="py-2">Kind</th><th class="py-2">Amount</th><th class="py-2"></th></tr>
@@ -89,6 +90,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
 
         <div class="bg-white dark:bg-slate-800 shadow-sm rounded-lg p-6 space-y-4">
@@ -124,6 +126,7 @@
                 </div>
             </form>
 
+            <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="text-left text-gray-500 dark:text-slate-400">
                     <tr><th class="py-2">Date</th><th class="py-2">Method</th><th class="py-2">Reference</th><th class="py-2">Amount</th><th class="py-2"></th></tr>
@@ -149,6 +152,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 

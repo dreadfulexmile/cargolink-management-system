@@ -114,6 +114,7 @@
         @endif
 
         <div class="bg-white dark:bg-slate-800 shadow-sm rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-slate-900/50 text-left text-gray-500 dark:text-slate-400">
                     <tr>
@@ -140,6 +141,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
 
         {{ $jobs->links() }}

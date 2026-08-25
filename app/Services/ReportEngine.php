@@ -80,6 +80,40 @@ class ReportEngine
         return (string) Creditor::sum('outstanding');
     }
 
+    /**
+     * One row per invoice — customer, job, and invoice detail together, not
+     * just the per-customer total topCustomersByProfit() gives you. Used by
+     * the Customer Profit export, where "which job/invoice made this
+     * profit" matters as much as the total does. Pass null/null for every
+     * invoice ever recorded (the export's "all time" default) or a range to
+     * scope it.
+     */
+    public function customerProfitDetail(?Carbon $start = null, ?Carbon $end = null): \Illuminate\Support\Collection
+    {
+        return Invoice::query()
+            ->when($start && $end, fn ($q) => $q->whereBetween('invoice_date', [$start->toDateString(), $end->toDateString()]))
+            ->with('job.costLines', 'job.serviceCosts', 'customer')
+            ->get()
+            ->map(function (Invoice $invoice) {
+                $disbursements = (string) $invoice->job->costLines->where('kind', 'disbursement')->sum('amount');
+                $serviceCosts = (string) $invoice->job->serviceCosts->sum('amount');
+                $grossProfit = bcsub(bcsub((string) $invoice->subtotal, $disbursements, 2), $serviceCosts, 2);
+
+                return [
+                    'customer' => $invoice->customer->name,
+                    'job_no' => $invoice->job->job_no,
+                    'invoice_no' => $invoice->invoice_no,
+                    'invoice_date' => $invoice->invoice_date->format('Y-m-d'),
+                    'revenue' => (string) $invoice->subtotal,
+                    'cost_of_services' => $disbursements,
+                    'internal_service_costs' => $serviceCosts,
+                    'gross_profit' => $grossProfit,
+                ];
+            })
+            ->sortBy(['customer', 'invoice_date'])
+            ->values();
+    }
+
     public function topCustomersByProfit(Carbon $start, Carbon $end, int $limit = 5): \Illuminate\Support\Collection
     {
         return Invoice::whereBetween('invoice_date', [$start->toDateString(), $end->toDateString()])

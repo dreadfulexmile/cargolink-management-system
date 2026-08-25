@@ -59,12 +59,10 @@
                     <div><span class="text-gray-500 dark:text-slate-400">Disbursements</span><div class="font-medium text-gray-900 dark:text-slate-100"><x-money :amount="$totalDisbursements" /></div></div>
                     <div><span class="text-gray-500 dark:text-slate-400">Services</span><div class="font-medium text-gray-900 dark:text-slate-100"><x-money :amount="$totalServices" /></div></div>
                     <div><span class="text-gray-500 dark:text-slate-400">Advances Received</span><div class="font-medium text-gray-900 dark:text-slate-100"><x-money :amount="$totalAdvances" /></div></div>
-                    @role('gm')
-                        <div><span class="text-gray-500 dark:text-slate-400">Internal Service Costs</span><div class="font-medium text-gray-900 dark:text-slate-100"><x-money :amount="$totalServiceCosts" /></div></div>
-                        @if ($companyProfit !== null)
-                            <div><span class="text-gray-500 dark:text-slate-400">Final Earning</span><div class="font-semibold text-emerald-600 dark:text-emerald-400"><x-money :amount="$companyProfit" /></div></div>
-                        @endif
-                    @endrole
+                    <div><span class="text-gray-500 dark:text-slate-400">Internal Service Costs</span><div class="font-medium text-gray-900 dark:text-slate-100"><x-money :amount="$totalServiceCosts" /></div></div>
+                    @if ($companyProfit !== null)
+                        <div><span class="text-gray-500 dark:text-slate-400">Final Earning</span><div class="font-semibold text-emerald-600 dark:text-emerald-400"><x-money :amount="$companyProfit" /></div></div>
+                    @endif
                     <div class="col-span-2 sm:col-span-4"><span class="text-gray-500 dark:text-slate-400">Cargo Description</span><div class="font-medium text-gray-900 dark:text-slate-100">{{ $job->cargo_description ?: '—' }}</div></div>
                     <div class="col-span-2 sm:col-span-4"><span class="text-gray-500 dark:text-slate-400">Remarks</span><div class="font-medium text-gray-900 dark:text-slate-100">{{ $job->remarks ?: '—' }}</div></div>
                 </div>
@@ -219,6 +217,7 @@
                 </div>
             @endif
 
+            <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="text-left text-gray-500 dark:text-slate-400">
                     <tr>
@@ -252,11 +251,11 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
 
-        @role('gm')
-            {{-- Internal Service Costs — not printed on the invoice, gm only --}}
-            <div class="bg-white dark:bg-slate-800 shadow-sm rounded-lg p-6 space-y-4">
+        {{-- Internal Service Costs — not printed on the invoice --}}
+        <div class="bg-white dark:bg-slate-800 shadow-sm rounded-lg p-6 space-y-4">
                 <div>
                     <h3 class="font-semibold text-gray-800 dark:text-slate-200">Internal Service Costs</h3>
                     <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">
@@ -299,6 +298,7 @@
                 </form>
 
                 @if ($serviceCosts->isNotEmpty())
+                    <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="text-left text-gray-500 dark:text-slate-400">
                             <tr>
@@ -330,11 +330,11 @@
                             @endforeach
                         </tbody>
                     </table>
+                    </div>
                 @else
                     <p class="text-sm text-gray-500 dark:text-slate-400">No internal service costs recorded.</p>
                 @endif
-            </div>
-        @endrole
+        </div>
 
         <!-- Advances -->
         <div class="bg-white dark:bg-slate-800 shadow-sm rounded-lg p-6 space-y-4">
@@ -372,6 +372,7 @@
                 </div>
             </form>
 
+            <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="text-left text-gray-500 dark:text-slate-400">
                     <tr>
@@ -405,6 +406,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 

@@ -36,9 +36,10 @@
                 <div class="relative flex flex-wrap items-end justify-between gap-6">
                     <div>
                         <div class="text-brand-100 text-sm">Hire Income — {{ $activeLorry->reg_no }}</div>
-                        <div class="text-3xl sm:text-4xl font-bold mt-1 whitespace-nowrap">
+                        <button type="button" x-data x-on:click="$dispatch('open-modal', 'hire-income-summary')"
+                            class="text-3xl sm:text-4xl font-bold mt-1 whitespace-nowrap text-left hover:text-brand-100 decoration-dotted underline-offset-8 hover:underline">
                             <x-money :amount="$totalHireIncome" :cents="false" :symbol="false" />
-                        </div>
+                        </button>
                     </div>
                     <div class="flex gap-8">
                         <div>
@@ -55,27 +56,6 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <x-stat-card label="Held-up Fee (Rs)" icon="revenue" color="teal">
-                    <x-money :amount="$activeLorry->total_held_fee ?? 0" :cents="false" :symbol="false" />
-                </x-stat-card>
-                <x-stat-card label="Lease Amount (Rs)" icon="key" color="fuchsia">
-                    <x-money :amount="$activeLorry->total_lease ?? 0" :cents="false" :symbol="false" />
-                </x-stat-card>
-                <x-stat-card label="Diesel (Rs)" icon="cost" color="amber">
-                    <x-money :amount="$activeLorry->total_diesel ?? 0" :cents="false" :symbol="false" />
-                </x-stat-card>
-                <x-stat-card label="Repairs & Maintenance (Rs)" icon="cost" color="amber">
-                    <x-money :amount="bcadd((string) ($activeLorry->total_repair ?? 0), (string) ($activeLorry->total_maintenance ?? 0), 2)" :cents="false" :symbol="false" />
-                </x-stat-card>
-                <x-stat-card label="Driver Fee (Rs)" icon="creditors" color="rose">
-                    <x-money :amount="$activeLorry->total_driver_fee ?? 0" :cents="false" :symbol="false" />
-                </x-stat-card>
-                <x-stat-card label="Yard OT (Rs)" icon="creditors" color="rose">
-                    <x-money :amount="$activeLorry->total_yard_ot ?? 0" :cents="false" :symbol="false" />
-                </x-stat-card>
-            </div>
-
             <div class="bg-white dark:bg-slate-800 shadow-sm rounded-3xl p-6 space-y-5">
                 <div class="flex gap-1 border-b border-gray-100 dark:border-slate-700 -mt-1">
                     <button type="button" wire:click="selectLorryTab('income')"
@@ -89,7 +69,7 @@
                 </div>
 
                 @if ($lorryTab === 'income')
-                    <button wire:click="addHire({{ $activeLorry->id }})" class="px-3 py-1.5 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-md text-sm font-medium">+ Add Hire Income</button>
+                    <button wire:click="addHire({{ $activeLorry->id }})" class="px-3 py-1.5 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-md text-sm font-medium">+ Add Hire</button>
                 @elseif ($lorryTab === 'expenses')
                     <button wire:click="addExpense({{ $activeLorry->id }})" class="px-3 py-1.5 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-md text-sm font-medium">+ Add Expense</button>
                 @endif
@@ -137,6 +117,37 @@
                                 </div>
                                 <div class="text-sm text-gray-600 dark:text-slate-300 pb-2">
                                     Held-up fee: <span class="font-semibold"><x-money :amount="$this->heldFeePreview" /></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-100 dark:border-slate-700 pt-3">
+                            <p class="text-xs text-gray-500 dark:text-slate-400 mb-2">Trip details (optional) — shown on the client's hire receipt.</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <x-input-label value="From" />
+                                    <x-text-input type="text" class="mt-1 block w-full text-sm" wire:model="hire_from_location" />
+                                    <x-input-error :messages="$errors->get('hire_from_location')" class="mt-1" />
+                                </div>
+                                <div>
+                                    <x-input-label value="To" />
+                                    <x-text-input type="text" class="mt-1 block w-full text-sm" wire:model="hire_to_location" />
+                                    <x-input-error :messages="$errors->get('hire_to_location')" class="mt-1" />
+                                </div>
+                                <div>
+                                    <x-input-label value="Start Date & Time" />
+                                    <x-text-input type="datetime-local" class="mt-1 block w-full text-sm" wire:model="hire_started_at" />
+                                    <x-input-error :messages="$errors->get('hire_started_at')" class="mt-1" />
+                                </div>
+                                <div>
+                                    <x-input-label value="End Date & Time" />
+                                    <x-text-input type="datetime-local" class="mt-1 block w-full text-sm" wire:model="hire_ended_at" />
+                                    <x-input-error :messages="$errors->get('hire_ended_at')" class="mt-1" />
+                                </div>
+                                <div>
+                                    <x-input-label value="Distance (km)" />
+                                    <x-text-input type="number" step="0.01" class="mt-1 block w-full text-sm" wire:model="hire_distance_km" />
+                                    <x-input-error :messages="$errors->get('hire_distance_km')" class="mt-1" />
                                 </div>
                             </div>
                         </div>
@@ -215,22 +226,30 @@
                     </div>
                 @endif
 
-                {{-- Hire income list --}}
-                @if ($lorryTab === 'income' && $activeLorry->hires->isEmpty())
-                    <p class="text-sm text-gray-500 dark:text-slate-400">No hire income logged for {{ $periodLabel }}.</p>
-                @endif
-                @if ($lorryTab === 'income' && $activeLorry->hires->isNotEmpty())
+                {{-- Hire history: full, searchable, all-time log — independent of the period filter above --}}
+                @if ($lorryTab === 'income')
                     <div>
-                        <h4 class="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Hire Income — {{ $periodLabel }}</h4>
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <h4 class="text-sm font-semibold text-gray-700 dark:text-slate-300">Hire History</h4>
+                            <input type="text" wire:model.live.debounce.300ms="hireHistorySearch" placeholder="Search by hirer..."
+                                class="w-full max-w-[220px] rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 text-sm">
+                        </div>
+
+                        @if ($hireHistory->isEmpty())
+                            <p class="text-sm text-gray-500 dark:text-slate-400">
+                                {{ $hireHistorySearch ? 'No hires match "'.$hireHistorySearch.'".' : 'No hire income recorded yet for this lorry.' }}
+                            </p>
+                        @else
+                        <div class="overflow-x-auto">
                         <table class="w-full text-sm border-t border-gray-100 dark:border-slate-700 pt-2">
                             <thead class="text-left text-gray-500 dark:text-slate-400">
-                                <tr><th class="py-1">Date</th><th class="py-1">Hired By</th><th class="py-1">Amount</th><th class="py-1">Held-up Fee</th><th class="py-1">Total</th><th class="py-1"></th></tr>
+                                <tr><th class="py-1">Date</th><th class="py-1">Hired By</th><th class="py-1">Amount</th><th class="py-1">Held-up Fee</th><th class="py-1">Total</th><th class="py-1 text-right"></th></tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
-                                @foreach ($activeLorry->hires as $hire)
+                                @foreach ($hireHistory as $hire)
                                     <tr class="text-gray-700 dark:text-slate-300">
                                         <td class="py-1">{{ $hire->hire_date->format('Y-m-d') }}</td>
-                                        <td class="py-1">{{ $hire->hirer_name ?? '—' }}</td>
+                                        <td class="py-1 max-w-[160px] truncate" title="{{ $hire->hirer_name }}">{{ $hire->hirer_name ?? '—' }}</td>
                                         <td class="py-1"><x-money :amount="$hire->amount" /></td>
                                         <td class="py-1">
                                             @if (bccomp((string) $hire->held_fee, '0', 2) > 0)
@@ -241,57 +260,83 @@
                                             @endif
                                         </td>
                                         <td class="py-1 font-medium"><x-money :amount="bcadd((string) $hire->amount, (string) $hire->held_fee, 2)" /></td>
-                                        <td class="py-1 space-x-2 whitespace-nowrap">
-                                            @if ($hire->held_hourly_rate !== null)
-                                                <button wire:click="incrementHeldHour({{ $hire->id }})" title="Add another held-up hour" class="text-xs px-2 py-1 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 rounded-md font-medium">+1h</button>
-                                            @endif
-                                            <button wire:click="editHire({{ $hire->id }})" title="Edit" class="p-1.5 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-md"><x-icon name="edit" class="w-3.5 h-3.5" /></button>
-                                            <button type="button" title="Delete" x-on:click="$dispatch('confirm-open', @js([
-                                                    'title' => 'Delete Hire Income',
-                                                    'message' => 'Delete this hire income entry?',
-                                                    'method' => 'deleteHire',
-                                                    'params' => [$hire->id],
-                                                    'confirmLabel' => 'Delete',
-                                                ]))" class="p-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-md"><x-icon name="delete" class="w-3.5 h-3.5" /></button>
+                                        <td class="py-1 whitespace-nowrap">
+                                            <div class="flex items-center justify-end gap-2">
+                                                @if ($hire->held_hourly_rate !== null)
+                                                    <button wire:click="incrementHeldHour({{ $hire->id }})" title="Add another held-up hour" class="text-xs px-2 py-1 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 rounded-md font-medium">+1h</button>
+                                                @endif
+                                                <a href="{{ route('lorries.hires.receipt', $hire) }}" target="_blank" title="Receipt" class="p-1.5 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-md"><x-icon name="invoices" class="w-3.5 h-3.5" /></a>
+                                                <button wire:click="editHire({{ $hire->id }})" title="Edit" class="p-1.5 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-md"><x-icon name="edit" class="w-3.5 h-3.5" /></button>
+                                                <button type="button" title="Delete" x-on:click="$dispatch('confirm-open', @js([
+                                                        'title' => 'Delete Hire Income',
+                                                        'message' => 'Delete this hire income entry?',
+                                                        'method' => 'deleteHire',
+                                                        'params' => [$hire->id],
+                                                        'confirmLabel' => 'Delete',
+                                                    ]))" class="p-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-md"><x-icon name="delete" class="w-3.5 h-3.5" /></button>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
+                        </div>
+
+                        {{ $hireHistory->links() }}
+                        @endif
                     </div>
                 @endif
 
-                {{-- Expense list --}}
-                @if ($lorryTab === 'expenses' && $activeLorry->expenses->isEmpty())
-                    <p class="text-sm text-gray-500 dark:text-slate-400">No expenses logged for {{ $periodLabel }}.</p>
-                @endif
-                @if ($lorryTab === 'expenses' && $activeLorry->expenses->isNotEmpty())
+                {{-- Expense history: full, filterable, all-time log — independent of the period filter above --}}
+                @if ($lorryTab === 'expenses')
                     <div>
-                        <h4 class="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Expenses — {{ $periodLabel }}</h4>
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <h4 class="text-sm font-semibold text-gray-700 dark:text-slate-300">Expense History</h4>
+                            <select wire:model.live="expenseHistoryCategory"
+                                class="w-full max-w-[220px] rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 text-sm">
+                                <option value="">All categories</option>
+                                @foreach (\App\Models\LorryExpense::CATEGORIES as $category)
+                                    <option value="{{ $category }}">{{ ucfirst(str_replace('_', ' ', $category)) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        @if ($expenseHistory->isEmpty())
+                            <p class="text-sm text-gray-500 dark:text-slate-400">
+                                {{ $expenseHistoryCategory ? 'No '.str_replace('_', ' ', $expenseHistoryCategory).' expenses recorded yet for this lorry.' : 'No expenses recorded yet for this lorry.' }}
+                            </p>
+                        @else
+                        <div class="overflow-x-auto">
                         <table class="w-full text-sm border-t border-gray-100 dark:border-slate-700 pt-2">
                             <thead class="text-left text-gray-500 dark:text-slate-400">
-                                <tr><th class="py-1">Date</th><th class="py-1">Category</th><th class="py-1">Amount</th><th class="py-1"></th></tr>
+                                <tr><th class="py-1">Date</th><th class="py-1">Category</th><th class="py-1">Amount</th><th class="py-1 text-right"></th></tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
-                                @foreach ($activeLorry->expenses as $expense)
+                                @foreach ($expenseHistory as $expense)
                                     <tr class="text-gray-700 dark:text-slate-300">
                                         <td class="py-1">{{ $expense->expense_date->format('Y-m-d') }}</td>
-                                        <td class="py-1 capitalize">{{ str_replace('_', ' ', $expense->category) }}</td>
+                                        <td class="py-1 capitalize max-w-[160px] truncate" title="{{ str_replace('_', ' ', $expense->category) }}">{{ str_replace('_', ' ', $expense->category) }}</td>
                                         <td class="py-1"><x-money :amount="$expense->amount" /></td>
-                                        <td class="py-1 space-x-2 whitespace-nowrap">
-                                            <button wire:click="editExpense({{ $expense->id }})" title="Edit" class="p-1.5 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-md"><x-icon name="edit" class="w-3.5 h-3.5" /></button>
-                                            <button type="button" title="Delete" x-on:click="$dispatch('confirm-open', @js([
-                                                    'title' => 'Delete Expense',
-                                                    'message' => 'Delete this expense entry?',
-                                                    'method' => 'deleteExpense',
-                                                    'params' => [$expense->id],
-                                                    'confirmLabel' => 'Delete',
-                                                ]))" class="p-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-md"><x-icon name="delete" class="w-3.5 h-3.5" /></button>
+                                        <td class="py-1 whitespace-nowrap">
+                                            <div class="flex items-center justify-end gap-2">
+                                                <button wire:click="editExpense({{ $expense->id }})" title="Edit" class="p-1.5 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-md"><x-icon name="edit" class="w-3.5 h-3.5" /></button>
+                                                <button type="button" title="Delete" x-on:click="$dispatch('confirm-open', @js([
+                                                        'title' => 'Delete Expense',
+                                                        'message' => 'Delete this expense entry?',
+                                                        'method' => 'deleteExpense',
+                                                        'params' => [$expense->id],
+                                                        'confirmLabel' => 'Delete',
+                                                    ]))" class="p-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-md"><x-icon name="delete" class="w-3.5 h-3.5" /></button>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
+                        </div>
+
+                        {{ $expenseHistory->links() }}
+                        @endif
                     </div>
                 @endif
             </div>
@@ -301,6 +346,71 @@
             </div>
         @endif
     </div>
+
+    @if ($activeLorry)
+        <x-modal name="hire-income-summary" maxWidth="md">
+            <div class="p-6 space-y-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-semibold text-lg text-gray-800 dark:text-slate-200">{{ $activeLorry->reg_no }} — Summary</h3>
+                        <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{{ $periodLabel }}</p>
+                    </div>
+                    <button type="button" x-on:click="$dispatch('close')" class="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300">
+                        <x-icon name="close" class="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-slate-500">Earnings</div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-600 dark:text-slate-300">Hire Amount</span>
+                        <x-money :amount="$activeLorry->total_hire_income ?? 0" :cents="false" />
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-600 dark:text-slate-300">Held-up Fee</span>
+                        <x-money :amount="$activeLorry->total_held_fee ?? 0" :cents="false" />
+                    </div>
+                    <div class="flex items-center justify-between text-sm font-semibold pt-2 border-t border-gray-100 dark:border-slate-700">
+                        <span class="text-gray-800 dark:text-slate-200">Total Earnings</span>
+                        <x-money :amount="$totalHireIncome" :cents="false" />
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-slate-500">Expenses</div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-600 dark:text-slate-300">Yard OT</span>
+                        <x-money :amount="$activeLorry->total_yard_ot ?? 0" :cents="false" />
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-600 dark:text-slate-300">Lease Amount</span>
+                        <x-money :amount="$activeLorry->total_lease ?? 0" :cents="false" />
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-600 dark:text-slate-300">Diesel</span>
+                        <x-money :amount="$activeLorry->total_diesel ?? 0" :cents="false" />
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-600 dark:text-slate-300">Repairs & Maintenance</span>
+                        <x-money :amount="bcadd((string) ($activeLorry->total_repair ?? 0), (string) ($activeLorry->total_maintenance ?? 0), 2)" :cents="false" />
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-600 dark:text-slate-300">Driver Fee</span>
+                        <x-money :amount="$activeLorry->total_driver_fee ?? 0" :cents="false" />
+                    </div>
+                    <div class="flex items-center justify-between text-sm font-semibold pt-2 border-t border-gray-100 dark:border-slate-700">
+                        <span class="text-gray-800 dark:text-slate-200">Total Expenses</span>
+                        <x-money :amount="$activeLorry->total_expenses ?? 0" :cents="false" />
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-base font-bold pt-3 border-t-2 border-gray-200 dark:border-slate-600">
+                    <span class="text-gray-900 dark:text-slate-100">Final Income</span>
+                    <x-money :amount="$net" :cents="false" />
+                </div>
+            </div>
+        </x-modal>
+    @endif
 
     <x-modal name="manage-lorries" maxWidth="lg">
         <div class="p-6 space-y-4">
@@ -337,6 +447,7 @@
 
             @if ($lorries->isNotEmpty())
                 <div class="max-h-80 overflow-y-auto -mx-1 px-1">
+                    <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="text-left text-gray-500 dark:text-slate-400">
                             <tr><th class="py-2">Reg No</th><th class="py-2">Name</th><th class="py-2">Active</th><th class="py-2"></th></tr>
@@ -370,6 +481,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                    </div>
                 </div>
             @else
                 <p class="text-sm text-gray-500 dark:text-slate-400">No lorries yet.</p>

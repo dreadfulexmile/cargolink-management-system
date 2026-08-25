@@ -10,7 +10,7 @@ class Payment extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['invoice_id', 'amount', 'method', 'reference', 'paid_on'];
+    protected $fillable = ['invoice_id', 'receipt_id', 'amount', 'method', 'reference', 'paid_on'];
 
     protected function casts(): array
     {
@@ -23,5 +23,12 @@ class Payment extends Model
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
+    }
+
+    // Null when this was recorded directly against one invoice (the common case) —
+    // only set when it's one slice of a customer-level Receipt split across invoices.
+    public function receipt(): BelongsTo
+    {
+        return $this->belongsTo(Receipt::class);
     }
 }

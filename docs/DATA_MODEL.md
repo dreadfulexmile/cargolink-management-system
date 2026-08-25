@@ -25,7 +25,16 @@ Money columns are `DECIMAL(15,2)`. All tables get `timestamps()` unless noted.
 - **invoices** — `invoice_no`(unique), job_id, customer_id, invoice_date, subtotal, advance_total,
   balance_due, `status`(unpaid/part_paid/paid) default unpaid.
 - **invoice_lines** — invoice_id, description, amount, kind.
-- **payments** — invoice_id, amount, `method`(cheque/bank/cash) default cheque, reference, paid_on.
+- **payments** — invoice_id, receipt_id (nullable, → receipts), amount, `method`(cheque/bank/cash)
+  default cheque, reference, paid_on. Always belongs to exactly one invoice — a payment split off
+  a customer-level receipt is just a normal Payment row with receipt_id set.
+- **receipts** — customer_id, amount, `method`(cheque/bank/cash) default cheque, reference,
+  received_on. The money a customer actually handed over in one go, when it doesn't map 1:1 to a
+  single invoice (e.g. one cheque covering parts of several job invoices at once). Recording one
+  creates a Receipt plus one Payment per invoice it covers, split either automatically
+  (oldest-invoice-first) or manually — see `Customers\ReceivePayment`. A plain single-invoice
+  payment (recorded from the invoice's own page) still skips this entirely and leaves
+  `receipt_id` null.
 
 ### Company accounts
 - **expense_categories** — `group`, name, is_active. *(seeded; see below)*
@@ -43,9 +52,11 @@ Money columns are `DECIMAL(15,2)`. All tables get `timestamps()` unless noted.
 
 ## Relationships
 
-- Customer → hasMany Job, Invoice
+- Customer → hasMany Job, Invoice, Receipt
 - Job → belongsTo Customer, (salesperson) User; hasMany JobCostLine, JobAdvance; hasOne Invoice
 - Invoice → belongsTo Job, Customer; hasMany InvoiceLine, Payment
+- Receipt → belongsTo Customer; hasMany Payment
+- Payment → belongsTo Invoice, (optionally) Receipt
 - Vehicle → hasMany LeasePayment
 
 ## Derived figures (compute, don't store as truth)
@@ -57,6 +68,7 @@ total_service    = sum(job_cost_lines where kind = service)   ← real earnings
 job_profit       = invoice.subtotal − total_job_cost
 company_profit   = job_profit − customer_incentive − job_commission
 balance_due      = invoice.subtotal − advance_total − sum(payments.amount)
+customer_owes    = sum(invoice.balance_due) across that customer's invoices
 ```
 
 ## Seed data

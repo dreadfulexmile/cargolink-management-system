@@ -117,6 +117,7 @@
                         @endif
 
                         @if ($vehicle->leasePayments->isNotEmpty())
+                            <div class="overflow-x-auto">
                             <table class="w-full text-sm border-t border-gray-100 dark:border-slate-700 pt-2">
                                 <thead class="text-left text-gray-500 dark:text-slate-400">
                                     <tr><th class="py-1">Period</th><th class="py-1">Due Date</th><th class="py-1">Paid On</th><th class="py-1">Amount</th><th class="py-1"></th></tr>
@@ -146,6 +147,7 @@
                                     @endforeach
                                 </tbody>
                             </table>
+                            </div>
                         @endif
                     </div>
                 @endif

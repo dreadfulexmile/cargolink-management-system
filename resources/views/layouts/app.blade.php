@@ -40,7 +40,7 @@
 
                         <div class="hidden sm:block"></div>
 
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2 sm:gap-4">
                             <a href="{{ route('lorries.index') }}" wire:navigate title="Manage Lorries" class="{{ request()->routeIs('lorries.*') ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300' }}">
                                 <x-icon name="lorries" class="w-6 h-6" />
                             </a>
@@ -53,7 +53,7 @@
                                         <span class="flex items-center justify-center w-7 h-7 rounded-full bg-brand-600 dark:bg-brand-500 text-white text-xs font-semibold shrink-0">
                                             {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                                         </span>
-                                        <span>{{ Auth::user()->name }}</span>
+                                        <span class="hidden sm:inline">{{ Auth::user()->name }}</span>
                                         <x-icon name="chevron-down" class="w-4 h-4" />
                                     </button>
                                 </x-slot>

@@ -16,6 +16,7 @@
                     <x-input-error :messages="$errors->get('invoice_date')" class="mt-1" />
                 </div>
 
+                <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="text-left text-gray-500 dark:text-slate-400">
                         <tr><th class="py-2">Description</th><th class="py-2">Kind</th><th class="py-2">Amount</th><th class="py-2"></th></tr>
@@ -38,6 +39,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                </div>
                 <x-input-error :messages="$errors->get('draftLines')" class="mt-1" />
 
                 <button type="button" wire:click="addDraftLine" class="text-sm text-gray-600 dark:text-slate-300 hover:underline">+ Add line</button>
@@ -65,6 +67,7 @@
         </div>
 
         <div class="bg-white dark:bg-slate-800 shadow-sm rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-slate-900/50 text-left text-gray-500 dark:text-slate-400">
                     <tr>
@@ -98,6 +101,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
 
         {{ $invoices->links() }}
